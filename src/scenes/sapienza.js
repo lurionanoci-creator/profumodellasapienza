@@ -1,19 +1,31 @@
+const L_LIVELLO = 10650;
+const A_LIVELLO = 2370;
 const TERRA = "0xB96E54";
 const VIOLA = "0x800080";
 const ROSSO = "0xE44A4A";
-const NERO = "0x000000";
-const A_TERRENO = 96;
-const Y_TERRENO = 624;
+const MARRONE = "0x8B5A2B";
+const A_TERRENO = 220;
+const Y_TERRENO = A_LIVELLO - A_TERRENO;
 const X_ROSA = 200;
 const L_ROSA = 81;
 const A_ROSA = 90;
 const L_UOMO = 81;
 const A_UOMO = 90;
-const VEL_INIZIALE = 400;
-const ACCELERAZIONE = 20;
-const L_LIVELLO = 3840;
+const L_PIATTAFORMA = 290;
+const A_PIATTAFORMA = 21;
+const X_PIATTAFORMA_1 = 1190;
+const Y_PIATTAFORMA_1 = Y_TERRENO - 150;
+const X_PIATTAFORMA_2 = 1700;
+const Y_PIATTAFORMA_2 = Y_TERRENO - 300;
+const X_PIATTAFORMA_3 = 1960;
+const Y_PIATTAFORMA_3 = Y_TERRENO - 150;
+const X_PIATTAFORMA_4 = 1460;
+const Y_PIATTAFORMA_4 = Y_TERRENO - 430;
+const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
 
-const DISTANZA_MAX = 600;
+const X_UOMO_MIN = 950;
+const X_UOMO_MAX = 1400;
+const VEL_UOMO = 400;
 const VEL_SALTO = 1000;
 const TASTO_SALTO = PP.key_codes.SPACE;
 const VEL_CORSA = 400;
@@ -21,27 +33,33 @@ const TASTO_SX = PP.key_codes.LEFT;
 const TASTO_DX = PP.key_codes.RIGHT;
 const ANTICIPO_CAMERA = 200;
 
-let vel_uomo = VEL_INIZIALE;
 let terreno;
 let rosa;
 let uomo;
-let partita_finita = false;
-let testo_fine;
-let testo_rigioca;
-
-function preload(s) {}
+let immagine_sfondo;
+function preload(s) {
+    immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
+}
 
 function create(s) {
+    crea_sfondo(s);
     crea_terreno(s);
     crea_rosa(s);
     crea_uomo(s);
-    crea_fine(s);
     crea_camera(s);
+    crea_piattaforma(s, X_PIATTAFORMA_1, Y_PIATTAFORMA_1);
+    crea_piattaforma(s, X_PIATTAFORMA_2, Y_PIATTAFORMA_2);
+    crea_piattaforma(s, X_PIATTAFORMA_3, Y_PIATTAFORMA_3);
+    crea_piattaforma(s, X_PIATTAFORMA_4, Y_PIATTAFORMA_4);
+}
+
+function crea_sfondo(s) {
+    PP.assets.image.add(s, immagine_sfondo, 0, A_LIVELLO, 0, 1);
 }
 
 function crea_camera(s) {
-    PP.physics.set_world_bounds(s, 0, 0, L_LIVELLO, ALTEZZA);
-    PP.camera.set_bounds(s, 0, 0, L_LIVELLO, ALTEZZA);
+    PP.physics.set_world_bounds(s, 0, 0, L_LIVELLO, A_LIVELLO);
+    PP.camera.set_bounds(s, 0, 0, L_LIVELLO, A_LIVELLO);
     PP.camera.start_follow(s, rosa, -ANTICIPO_CAMERA, 0);
 }
 
@@ -63,41 +81,31 @@ function crea_rosa(s) {
 
 function crea_uomo(s) {
     uomo = PP.shapes.rectangle_add(s,
-        LARGHEZZA * 3 / 4, Y_TERRENO - A_UOMO / 2,
+        X_UOMO_MIN, Y_TERRENO - A_UOMO / 2,
         L_UOMO, A_UOMO, ROSSO, 1);
     PP.physics.add(s, uomo, PP.physics.type.DYNAMIC);
     PP.physics.set_allow_gravity(uomo, false);
-    PP.physics.set_velocity_x(uomo, -vel_uomo);
+    PP.physics.set_velocity_x(uomo, VEL_UOMO);
     PP.physics.add_overlap_f(s, rosa, uomo, fine_partita);
 }
 
-function crea_fine(s) {
-    testo_fine = PP.shapes.text_styled_add(s,
-        LARGHEZZA / 2, ALTEZZA / 3, "GAME OVER",
-        64, "Arial", "bold", NERO, null, 0.5, 0.5);
-    testo_fine.visibility.hidden = true;
-
-    testo_rigioca = PP.shapes.text_styled_add(s,
-        LARGHEZZA / 2, ALTEZZA / 2, "RIGIOCA (SPAZIO)",
-        40, "Arial", "bold", NERO, null, 0.5, 0.5);
-    testo_rigioca.visibility.hidden = true;
+function crea_piattaforma(s, x, y) {
+    let piattaforma = PP.shapes.rectangle_add(s,
+        x, y,
+        L_PIATTAFORMA, A_PIATTAFORMA, MARRONE, 1);
+    PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
+    PP.physics.add_collider(s, rosa, piattaforma);
 }
+
 
 function fine_partita(s, a, b) {
-    partita_finita = true;
-    PP.physics.set_velocity_x(a, 0);
-    PP.physics.set_velocity_x(b, 0);
-    testo_fine.visibility.hidden = false;
-    testo_rigioca.visibility.hidden = false;
+    PP.scenes.start("fine");
 }
 
+
 function update(s) {
-    if (partita_finita) {
-        ricomincia(s);
-        return;
-    }
     salta(s);
-    controlla_uomo();
+    pattuglia_uomo();
     cammina(s);
 }
 
@@ -117,27 +125,14 @@ function cammina(s) {
 }
 }
 
-function controlla_uomo() {
-    if (uomo.geometry.x < -L_UOMO) {
-        vel_uomo += ACCELERAZIONE;
-        resetta_uomo();
+function pattuglia_uomo() {
+    if (uomo.geometry.x <= X_UOMO_MIN) {
+        PP.physics.set_velocity_x(uomo, VEL_UOMO);
+    } else if (uomo.geometry.x >= X_UOMO_MAX) {
+        PP.physics.set_velocity_x(uomo, -VEL_UOMO);
     }
 }
 
-function resetta_uomo() {
-    uomo.geometry.x = LARGHEZZA + L_UOMO / 2 + Math.random() * DISTANZA_MAX;
-    PP.physics.set_velocity_x(uomo, -vel_uomo);
-}
-
-function ricomincia(s) {
-    if (PP.interactive.kb.is_key_just_down(s, TASTO_SALTO)) {
-        partita_finita = false;
-        vel_uomo = VEL_INIZIALE;
-        resetta_uomo();
-        testo_fine.visibility.hidden = true;
-        testo_rigioca.visibility.hidden = true;
-    }
-}
 
 function destroy(s) {}
 
