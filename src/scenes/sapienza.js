@@ -11,18 +11,26 @@ const L_ROSA = 81;
 const A_ROSA = 90;
 const L_UOMO = 81;
 const A_UOMO = 90;
+
 const L_PIATTAFORMA = 290;
 const A_PIATTAFORMA = 21;
 const X_PIATTAFORMA_1 = 1190;
 const Y_PIATTAFORMA_1 = Y_TERRENO - 150;
-const X_PIATTAFORMA_2 = 1700;
-const Y_PIATTAFORMA_2 = Y_TERRENO - 300;
 const X_PIATTAFORMA_3 = 1960;
 const Y_PIATTAFORMA_3 = Y_TERRENO - 150;
-const X_PIATTAFORMA_4 = 1460;
-const Y_PIATTAFORMA_4 = Y_TERRENO - 430;
-const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
 
+const L_PIATTAFORMA_C = 170;
+const A_PIATTAFORMA_C = 21;
+const X_PIATTAFORMA_1_C = 1745;
+const Y_PIATTAFORMA_1_C = Y_TERRENO - 300;
+
+const L_PAVIMENTO_1 = 860;
+const A_PAVIMENTO_1 = 20;
+const X_PAVIMENTO_1 = 1190;
+const Y_PAVIMENTO_1 = Y_TERRENO - 425;
+
+
+const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
 const X_UOMO_MIN = 950;
 const X_UOMO_MAX = 1400;
 const VEL_UOMO = 400;
@@ -48,9 +56,9 @@ function create(s) {
     crea_uomo(s);
     crea_camera(s);
     crea_piattaforma(s, X_PIATTAFORMA_1, Y_PIATTAFORMA_1);
-    crea_piattaforma(s, X_PIATTAFORMA_2, Y_PIATTAFORMA_2);
+    crea_piattaforma_c(s, X_PIATTAFORMA_1_C, Y_PIATTAFORMA_1_C);
     crea_piattaforma(s, X_PIATTAFORMA_3, Y_PIATTAFORMA_3);
-    crea_piattaforma(s, X_PIATTAFORMA_4, Y_PIATTAFORMA_4);
+    crea_pavimento(s, X_PAVIMENTO_1, Y_PAVIMENTO_1);
 }
 
 function crea_sfondo(s) {
@@ -91,11 +99,25 @@ function crea_uomo(s) {
 
 function crea_piattaforma(s, x, y) {
     let piattaforma = PP.shapes.rectangle_add(s,
-        x, y,
-        L_PIATTAFORMA, A_PIATTAFORMA, MARRONE, 1);
+        x, y, L_PIATTAFORMA, A_PIATTAFORMA, MARRONE, 1);
     PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
     PP.physics.add_collider(s, rosa, piattaforma);
 }
+
+function crea_piattaforma_c (s, x, y) {
+    let piattaforma = PP.shapes.rectangle_add(s,
+        x, y, L_PIATTAFORMA_C, A_PIATTAFORMA_C, MARRONE, 1);
+    PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
+    PP.physics.add_collider(s, rosa, piattaforma);
+}
+
+function crea_pavimento(s, x, y) {
+    let pavimento = PP.shapes.rectangle_add(s,
+        x, y, L_PAVIMENTO_1, A_PAVIMENTO_1, TERRA, 1);
+    PP.physics.add(s, pavimento, PP.physics.type.STATIC);
+    PP.physics.add_collider(s, rosa, pavimento);
+}
+
 
 
 function fine_partita(s, a, b) {
