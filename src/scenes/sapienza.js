@@ -11,33 +11,26 @@ const L_ROSA = 81;
 const A_ROSA = 90;
 const L_UOMO = 81;
 const A_UOMO = 90;
+const X_CACAO = 1190;
+const Y_CACAO = Y_TERRENO - 200;
 
 
-const L_PIATTAFORMA = 290;
-const A_PIATTAFORMA = 21;
-const X_PIATTAFORMA_1 = 1190;
-const Y_PIATTAFORMA_1 = Y_TERRENO - 150;
-const X_PIATTAFORMA_2 = 1960;
-const Y_PIATTAFORMA_2 = Y_TERRENO - 150;
-const X_PIATTAFORMA_3 = 2420;
-const Y_PIATTAFORMA_3 = Y_TERRENO - 150;
-
-const L_PIATTAFORMA_C = 170;
-const A_PIATTAFORMA_C = 21;
-const X_PIATTAFORMA_1_C = 1745;
-const Y_PIATTAFORMA_1_C = Y_TERRENO - 295;
-const X_PIATTAFORMA_2_C = 2800;
-const Y_PIATTAFORMA_2_C = Y_TERRENO - 295;
-
-const L_PAVIMENTO_1 = 860;
-const A_PAVIMENTO_1 = 18;
-const X_PAVIMENTO_1 = 1190;
-const Y_PAVIMENTO_1 = Y_TERRENO - 429;
-const X_PAVIMENTO_1_2 = 2350;
-const Y_PAVIMENTO_1_2 = Y_TERRENO - 429;
+const PIATTAFORME = [
+    // piattaforme lunghe
+    { x: 1190, y: Y_TERRENO - 150, l: 290, a: 21, colore: MARRONE },
+    { x: 1960, y: Y_TERRENO - 150, l: 290, a: 21, colore: MARRONE },
+    { x: 2415, y: Y_TERRENO - 150, l: 270, a: 21, colore: MARRONE },
+    // piattaforme corte
+    { x: 1745, y: Y_TERRENO - 295, l: 170, a: 21, colore: MARRONE },
+    { x: 2800, y: Y_TERRENO - 295, l: 170, a: 21, colore: MARRONE },
+    // pavimenti
+    { x: 1190, y: Y_TERRENO - 429, l: 860, a: 18, colore: TERRA },
+    { x: 2340, y: Y_TERRENO - 429, l: 780, a: 18, colore: TERRA },
+];
 
 
 const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
+const PERCORSO_CACAO = "assets/images/cacao.png";
 const X_UOMO_MIN = 950;
 const X_UOMO_MAX = 1400;
 const VEL_UOMO = 400;
@@ -49,11 +42,15 @@ const TASTO_DX = PP.key_codes.RIGHT;
 const ANTICIPO_CAMERA = 200;
 
 let terreno;
+let cacao
 let rosa;
 let uomo;
 let immagine_sfondo;
+let immagine_cacao;
+
 function preload(s) {
     immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
+    immagine_cacao = PP.assets.image.load(s, PERCORSO_CACAO);
 }
 
 function create(s) {
@@ -62,13 +59,8 @@ function create(s) {
     crea_rosa(s);
     crea_uomo(s);
     crea_camera(s);
-    crea_piattaforma(s, X_PIATTAFORMA_1, Y_PIATTAFORMA_1);
-    crea_piattaforma(s, X_PIATTAFORMA_2, Y_PIATTAFORMA_2);
-    crea_piattaforma(s, X_PIATTAFORMA_3, Y_PIATTAFORMA_3);
-    crea_piattaforma_c(s, X_PIATTAFORMA_1_C, Y_PIATTAFORMA_1_C);
-    crea_piattaforma_c(s, X_PIATTAFORMA_2_C, Y_PIATTAFORMA_2_C);
-    crea_pavimento(s, X_PAVIMENTO_1, Y_PAVIMENTO_1);
-    crea_pavimento(s, X_PAVIMENTO_1_2, Y_PAVIMENTO_1_2);
+    crea_piattaforme(s);
+    crea_cacao(s);
 }
 
 function crea_sfondo(s) {
@@ -86,6 +78,12 @@ function crea_terreno(s) {
        L_LIVELLO / 2, Y_TERRENO + A_TERRENO / 2,
     L_LIVELLO, A_TERRENO, TERRA, 1);
     PP.physics.add(s, terreno, PP.physics.type.STATIC);
+}
+
+function crea_cacao(s) { 
+    cacao = PP.assets.image.add(s, immagine_cacao, X_CACAO, Y_CACAO, 0.5, 0.5);
+    PP.physics.add(s, cacao, PP.physics.type.STATIC);
+    PP.physics.add_collider(s, rosa, cacao);
 }
 
 function crea_rosa(s) {
@@ -107,27 +105,18 @@ function crea_uomo(s) {
     PP.physics.add_overlap_f(s, rosa, uomo, fine_partita);
 }
 
-function crea_piattaforma(s, x, y, l, a) {
+function crea_piattaforme(s) {
+    for (const p of PIATTAFORME) {
+        crea_piattaforma(s, p);
+    }
+}
+
+function crea_piattaforma(s, p) {
     let piattaforma = PP.shapes.rectangle_add(s,
-        x, y, L_PIATTAFORMA, A_PIATTAFORMA, MARRONE, 1);
+        p.x, p.y, p.l, p.a, p.colore, 1);
     PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
     PP.physics.add_collider(s, rosa, piattaforma);
 }
-
-function crea_piattaforma_c (s, x, y) {
-    let piattaforma = PP.shapes.rectangle_add(s,
-        x, y, L_PIATTAFORMA_C, A_PIATTAFORMA_C, MARRONE, 1);
-    PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
-    PP.physics.add_collider(s, rosa, piattaforma);
-}
-
-function crea_pavimento(s, x, y) {
-    let pavimento = PP.shapes.rectangle_add(s,
-        x, y, L_PAVIMENTO_1, A_PAVIMENTO_1, TERRA, 1);
-    PP.physics.add(s, pavimento, PP.physics.type.STATIC);
-    PP.physics.add_collider(s, rosa, pavimento);
-}
-
 
 
 function fine_partita(s, a, b) {
