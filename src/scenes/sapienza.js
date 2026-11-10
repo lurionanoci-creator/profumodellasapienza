@@ -12,22 +12,29 @@ const A_ROSA = 90;
 const L_UOMO = 81;
 const A_UOMO = 90;
 
+
 const L_PIATTAFORMA = 290;
 const A_PIATTAFORMA = 21;
 const X_PIATTAFORMA_1 = 1190;
 const Y_PIATTAFORMA_1 = Y_TERRENO - 150;
-const X_PIATTAFORMA_3 = 1960;
+const X_PIATTAFORMA_2 = 1960;
+const Y_PIATTAFORMA_2 = Y_TERRENO - 150;
+const X_PIATTAFORMA_3 = 2420;
 const Y_PIATTAFORMA_3 = Y_TERRENO - 150;
 
 const L_PIATTAFORMA_C = 170;
 const A_PIATTAFORMA_C = 21;
 const X_PIATTAFORMA_1_C = 1745;
-const Y_PIATTAFORMA_1_C = Y_TERRENO - 300;
+const Y_PIATTAFORMA_1_C = Y_TERRENO - 295;
+const X_PIATTAFORMA_2_C = 2800;
+const Y_PIATTAFORMA_2_C = Y_TERRENO - 295;
 
 const L_PAVIMENTO_1 = 860;
-const A_PAVIMENTO_1 = 20;
+const A_PAVIMENTO_1 = 18;
 const X_PAVIMENTO_1 = 1190;
-const Y_PAVIMENTO_1 = Y_TERRENO - 425;
+const Y_PAVIMENTO_1 = Y_TERRENO - 429;
+const X_PAVIMENTO_1_2 = 2350;
+const Y_PAVIMENTO_1_2 = Y_TERRENO - 429;
 
 
 const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
@@ -56,9 +63,12 @@ function create(s) {
     crea_uomo(s);
     crea_camera(s);
     crea_piattaforma(s, X_PIATTAFORMA_1, Y_PIATTAFORMA_1);
-    crea_piattaforma_c(s, X_PIATTAFORMA_1_C, Y_PIATTAFORMA_1_C);
+    crea_piattaforma(s, X_PIATTAFORMA_2, Y_PIATTAFORMA_2);
     crea_piattaforma(s, X_PIATTAFORMA_3, Y_PIATTAFORMA_3);
+    crea_piattaforma_c(s, X_PIATTAFORMA_1_C, Y_PIATTAFORMA_1_C);
+    crea_piattaforma_c(s, X_PIATTAFORMA_2_C, Y_PIATTAFORMA_2_C);
     crea_pavimento(s, X_PAVIMENTO_1, Y_PAVIMENTO_1);
+    crea_pavimento(s, X_PAVIMENTO_1_2, Y_PAVIMENTO_1_2);
 }
 
 function crea_sfondo(s) {
@@ -97,7 +107,7 @@ function crea_uomo(s) {
     PP.physics.add_overlap_f(s, rosa, uomo, fine_partita);
 }
 
-function crea_piattaforma(s, x, y) {
+function crea_piattaforma(s, x, y, l, a) {
     let piattaforma = PP.shapes.rectangle_add(s,
         x, y, L_PIATTAFORMA, A_PIATTAFORMA, MARRONE, 1);
     PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
