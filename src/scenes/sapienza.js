@@ -57,6 +57,11 @@ const PIATTAFORME = [
     { x: 3010, y: Y_TERRENO - 710, l: 320, a: 21, colore: MARRONE },
     // piattaforme lunghe 2
     { x: 2345, y: Y_TERRENO - 710, l: 680, a: 21, colore: MARRONE },
+
+    { x: 2845, y: Y_TERRENO - 995, l: 200, a: 18, colore: MARRONE },
+    { x: 2700, y: Y_TERRENO - 1125, l: 225, a: 18, colore: MARRONE },
+    { x: 2170, y: Y_TERRENO - 1130, l: 275, a: 18, colore: MARRONE },
+    { x: 1180, y: Y_TERRENO - 995, l: 275, a: 18, colore: MARRONE },
 ];
 
 
