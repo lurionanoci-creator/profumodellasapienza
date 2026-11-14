@@ -15,6 +15,16 @@ const A_UOMO = 90;
 const X_CACAO = 1190;
 const Y_CACAO = Y_TERRENO - 200;
 
+const SCALE = [
+    { x: 3295, y_alto: Y_TERRENO - 1119, l: 80, a: 1119 },
+    { x: 3020, y_alto: Y_TERRENO - 1430,  l: 100, a: 280 },
+];
+
+const COLORE_SCALA = "0xFFD700";
+const TRASPARENZA_SCALA = 0.4;
+const VEL_SCALA = 300;
+const TASTO_SU = PP.key_codes.UP;
+const TASTO_GIU = PP.key_codes.DOWN;
 
 const PIATTAFORME = [
     // piattaforme lunghe
@@ -48,6 +58,7 @@ const PIATTAFORME = [
     { x: 2285, y: Y_TERRENO - 840, l: 900, a: 18, colore: TERRA },
     { x: 1460, y: Y_TERRENO - 840, l: 300, a: 18, colore: TERRA },
     { x: 1050, y: Y_TERRENO - 840, l: 280, a: 18, colore: TERRA },
+    { x: 2760, y: Y_TERRENO - 1420, l: 430, a: 18, colore: TERRA },
     // piattaforme corte 2
     { x: 1820, y: Y_TERRENO - 565, l: 130, a: 21, colore: MARRONE },
     { x: 1045, y: Y_TERRENO - 575, l: 150, a: 21, colore: MARRONE },
@@ -57,7 +68,6 @@ const PIATTAFORME = [
     { x: 3010, y: Y_TERRENO - 710, l: 320, a: 21, colore: MARRONE },
     // piattaforme lunghe 2
     { x: 2345, y: Y_TERRENO - 710, l: 680, a: 21, colore: MARRONE },
-
     { x: 2845, y: Y_TERRENO - 995, l: 200, a: 18, colore: MARRONE },
     { x: 2700, y: Y_TERRENO - 1125, l: 225, a: 18, colore: MARRONE },
     { x: 2170, y: Y_TERRENO - 1130, l: 275, a: 18, colore: MARRONE },
@@ -83,6 +93,8 @@ let rosa;
 let uomo;
 let immagine_sfondo;
 let immagine_cacao;
+let sulla_scala = false;
+let in_scala = false;
 
 function preload(s) {
     immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
@@ -96,6 +108,7 @@ function create(s) {
     crea_uomo(s);
     crea_camera(s);
     crea_piattaforme(s);
+    crea_scale(s);
     crea_cacao(s);
 }
 
@@ -154,6 +167,23 @@ function crea_piattaforma(s, p) {
     PP.physics.add_collider(s, rosa, piattaforma);
 }
 
+function crea_scale(s) {
+    for (const dati of SCALE) {
+        crea_scala(s, dati);
+    }
+}
+
+function crea_scala(s, dati) {
+    let scala = PP.shapes.rectangle_add(s,
+        dati.x, dati.y_alto + dati.a / 2,
+        dati.l, dati.a, COLORE_SCALA, TRASPARENZA_SCALA);
+    PP.physics.add(s, scala, PP.physics.type.STATIC);
+    PP.physics.add_overlap_f(s, rosa, scala, tocca_scala);
+}
+
+function tocca_scala(s, a, b) {
+    sulla_scala = true;
+}
 
 function fine_partita(s, a, b) {
     PP.scenes.start("fine");
@@ -164,6 +194,8 @@ function update(s) {
     salta(s);
     pattuglia_uomo();
     cammina(s);
+    arrampica(s);
+
 }
 
 function salta(s) {
@@ -187,6 +219,35 @@ function pattuglia_uomo() {
         PP.physics.set_velocity_x(uomo, VEL_UOMO);
     } else if (uomo.geometry.x >= X_UOMO_MAX) {
         PP.physics.set_velocity_x(uomo, -VEL_UOMO);
+    }
+}
+
+
+function arrampica(s) {
+    if (sulla_scala == false) {
+        in_scala = false;
+    } else if (PP.interactive.kb.is_key_down(s, TASTO_SU)
+        || PP.interactive.kb.is_key_down(s, TASTO_GIU)) {
+        in_scala = true;
+    }
+
+    if (in_scala) {
+        PP.physics.set_allow_gravity(rosa, false);
+        muovi_su_scala(s);
+    } else {
+        PP.physics.set_allow_gravity(rosa, true);
+    }
+
+    sulla_scala = false;
+}
+
+function muovi_su_scala(s) {
+    if (PP.interactive.kb.is_key_down(s, TASTO_SU)) {
+        PP.physics.set_velocity_y(rosa, -VEL_SCALA);
+    } else if (PP.interactive.kb.is_key_down(s, TASTO_GIU)) {
+        PP.physics.set_velocity_y(rosa, VEL_SCALA);
+    } else {
+        PP.physics.set_velocity_y(rosa, 0);
     }
 }
 
