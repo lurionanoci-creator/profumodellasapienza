@@ -14,6 +14,15 @@ const L_UOMO = 81;
 const A_UOMO = 90;
 const X_CACAO = 1190;
 const Y_CACAO = Y_TERRENO - 200;
+const L_OGGETTO = 80;
+const A_OGGETTO = 80;
+const COLORE_OGGETTO = "0x4A90E2";
+const A_TRAGUARDO = 400;
+const L_TRAGUARDO = 100;
+const X_TRAGUARDO = 10200;
+const Y_TRAGUARDO = Y_TERRENO - A_TRAGUARDO / 2;
+const COLORE_TRAGUARDO = "0x00C853";
+const TRASPARENZA_TRAGUARDO = 0.4;
 
 const SCALE = [
     { x: 3295, y_alto: Y_TERRENO - 1119, l: 80, a: 1119 },
@@ -25,6 +34,8 @@ const TRASPARENZA_SCALA = 0.4;
 const VEL_SCALA = 300;
 const TASTO_SU = PP.key_codes.UP;
 const TASTO_GIU = PP.key_codes.DOWN;
+const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
+const PERCORSO_CACAO = "assets/images/cacao.png";
 
 const PIATTAFORME = [
     // piattaforme lunghe
@@ -74,9 +85,33 @@ const PIATTAFORME = [
     { x: 1180, y: Y_TERRENO - 995, l: 275, a: 18, colore: MARRONE },
 ];
 
+const SCELTE = [
+    { testo: "Testo segnaposto della domanda 1.",
+        corretta: "a",
+      a: { nome: "Cacao", x: X_CACAO, y: Y_CACAO, percorso: PERCORSO_CACAO },
+      b: { nome: "Oggetto B", x: X_CACAO + 100, y: Y_CACAO, percorso: "" } },
+    { testo: "Testo segnaposto della domanda 2.",
+        corretta: "b",
+        a: { nome: "Opzione 1", x: 2000, y: Y_TERRENO - 40, percorso: "" },
+        b: { nome: "Opzione 2", x: 2100, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Testo segnaposto della domanda 3.",
+        corretta: "a",
+      a: { nome: "Opzione 1", x: 4000, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Opzione 2", x: 4100, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Testo segnaposto della domanda 4.",
+        corretta: "b",
+      a: { nome: "Opzione 1", x: 5000, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Opzione 2", x: 5100, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Testo segnaposto della domanda 5.",
+        corretta: "a",
+      a: { nome: "Opzione 1", x: 7500, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Opzione 2", x: 7600, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Testo segnaposto della domanda 6.",
+        corretta: "b",
+      a: { nome: "Opzione 1", x: 9000, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Opzione 2", x: 9100, y: Y_TERRENO - 40, percorso: "" } },
+];
 
-const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
-const PERCORSO_CACAO = "assets/images/cacao.png";
 const X_UOMO_MIN = 950;
 const X_UOMO_MAX = 1400;
 const VEL_UOMO = 400;
@@ -88,20 +123,35 @@ const TASTO_DX = PP.key_codes.RIGHT;
 const ANTICIPO_CAMERA = 200;
 
 let terreno;
-let cacao
 let rosa;
 let uomo;
 let immagine_sfondo;
-let immagine_cacao;
 let sulla_scala = false;
 let in_scala = false;
+let scelta_corrente = 0;
+let scelte_fatte = [];
+let partita_vinta = false;
 
 function preload(s) {
     immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
-    immagine_cacao = PP.assets.image.load(s, PERCORSO_CACAO);
+    carica_oggetti(s);
+}
+
+function carica_oggetti(s) {
+    for (const scelta of SCELTE) {
+        carica_oggetto(s, scelta.a);
+        carica_oggetto(s, scelta.b);
+    }
+}
+
+function carica_oggetto(s, dati) {
+    if (dati.percorso != "") {
+        dati.immagine = PP.assets.image.load(s, dati.percorso);
+    }
 }
 
 function create(s) {
+    azzera_scelte();
     crea_sfondo(s);
     crea_terreno(s);
     crea_rosa(s);
@@ -109,7 +159,37 @@ function create(s) {
     crea_camera(s);
     crea_piattaforme(s);
     crea_scale(s);
-    crea_cacao(s);
+    crea_oggetti(s);
+    crea_traguardo(s);
+}
+
+function crea_oggetti(s) {
+    for (let numero = 0; numero < SCELTE.length; numero++) {
+        crea_oggetto(s, SCELTE[numero].a, numero);
+        crea_oggetto(s, SCELTE[numero].b, numero);
+    }
+}
+
+function crea_oggetto(s, dati, numero) {
+    let oggetto;
+    if (dati.percorso == "") {
+        oggetto = PP.shapes.rectangle_add(s,
+            dati.x, dati.y,
+            L_OGGETTO, A_OGGETTO, COLORE_OGGETTO, 1);
+    } else {
+        oggetto = PP.assets.image.add(s, dati.immagine,
+            dati.x, dati.y, 0.5, 0.5);
+    }
+    oggetto.numero_scelta = numero;
+    PP.physics.add(s, oggetto, PP.physics.type.STATIC);
+    PP.physics.add_collider_f(s, rosa, oggetto, tocca_oggetto);
+}
+
+function azzera_scelte() {
+    scelte_fatte = [];
+    for (const scelta of SCELTE) {
+        scelte_fatte.push("");
+    }
 }
 
 function crea_sfondo(s) {
@@ -129,10 +209,17 @@ function crea_terreno(s) {
     PP.physics.add(s, terreno, PP.physics.type.STATIC);
 }
 
-function crea_cacao(s) { 
-    cacao = PP.assets.image.add(s, immagine_cacao, X_CACAO, Y_CACAO, 0.5, 0.5);
-    PP.physics.add(s, cacao, PP.physics.type.STATIC);
-    PP.physics.add_collider(s, rosa, cacao);
+
+function tocca_oggetto(s, a, b) {
+    let numero = b.numero_scelta;
+    if (numero == undefined) {
+        numero = a.numero_scelta;
+    }
+    if (scelte_fatte[numero] == "") {
+        scelte_fatte[numero] = "in_corso";
+        scelta_corrente = numero;
+        PP.scenes.start_overlay("scelta");
+    }
 }
 
 function crea_rosa(s) {
@@ -185,7 +272,30 @@ function tocca_scala(s, a, b) {
     sulla_scala = true;
 }
 
+function crea_traguardo(s) {
+    let traguardo = PP.shapes.rectangle_add(s,
+        X_TRAGUARDO, Y_TRAGUARDO,
+        L_TRAGUARDO, A_TRAGUARDO, COLORE_TRAGUARDO, TRASPARENZA_TRAGUARDO);
+    PP.physics.add(s, traguardo, PP.physics.type.STATIC);
+    PP.physics.add_overlap_f(s, rosa, traguardo, tocca_traguardo);
+}
+
+function tocca_traguardo(s, a, b) {
+    partita_vinta = scelte_tutte_corrette();
+    PP.scenes.start("fine");
+}
+
+function scelte_tutte_corrette() {
+    for (let numero = 0; numero < SCELTE.length; numero++) {
+        if (scelte_fatte[numero] != SCELTE[numero].corretta) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function fine_partita(s, a, b) {
+    partita_vinta = false;
     PP.scenes.start("fine");
 }
 
@@ -195,8 +305,8 @@ function update(s) {
     pattuglia_uomo();
     cammina(s);
     arrampica(s);
-
 }
+
 
 function salta(s) {
     if (PP.interactive.kb.is_key_just_down(s, TASTO_SALTO)

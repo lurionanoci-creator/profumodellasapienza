@@ -1,11 +1,18 @@
 const NERO = "0x000000";
 const TASTO_RIGIOCA = PP.key_codes.SPACE;
+const TESTO_VITTORIA = "HAI VINTO!";
+const TESTO_SCONFITTA = "GAME OVER";
 
 function preload_fine(s) {}
 
 function create_fine(s) {
+    let titolo = TESTO_SCONFITTA;
+    if (partita_vinta) {
+        titolo = TESTO_VITTORIA;
+    }
+
     PP.shapes.text_styled_add(s,
-        LARGHEZZA / 2, ALTEZZA / 3, "GAME OVER",
+        LARGHEZZA / 2, ALTEZZA / 3, titolo,
         64, "Arial", "bold", NERO, null, 0.5, 0.5);
 
     PP.shapes.text_styled_add(s,
