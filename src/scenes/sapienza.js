@@ -23,6 +23,11 @@ const X_TRAGUARDO = 10200;
 const Y_TRAGUARDO = Y_TERRENO - A_TRAGUARDO / 2;
 const COLORE_TRAGUARDO = "0x00C853";
 const TRASPARENZA_TRAGUARDO = 0.4;
+const PERCORSO_ROSA_SCALA = "assets/images/rosa_scala.png";
+const L_FRAME_SCALA = 128;
+const A_FRAME_SCALA = 144;
+const FPS_SCALA = 8;
+const NOME_ANIMAZIONE_SCALA = "scala";
 
 const SCALE = [
     { x: 3295, y_alto: Y_TERRENO - 1119, l: 80, a: 1119 },
@@ -131,11 +136,17 @@ let in_scala = false;
 let scelta_corrente = 0;
 let scelte_fatte = [];
 let partita_vinta = false;
+let spritesheet_rosa_scala;
+let rosa_scala;
+let animazione_scala_attiva = false;
 
 function preload(s) {
     immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
+    spritesheet_rosa_scala = PP.assets.sprite.load_spritesheet(s,
+        PERCORSO_ROSA_SCALA, L_FRAME_SCALA, A_FRAME_SCALA);
     carica_oggetti(s);
 }
+
 
 function carica_oggetti(s) {
     for (const scelta of SCELTE) {
@@ -161,7 +172,9 @@ function create(s) {
     crea_scale(s);
     crea_oggetti(s);
     crea_traguardo(s);
+    crea_rosa_scala(s);
 }
+
 
 function crea_oggetti(s) {
     for (let numero = 0; numero < SCELTE.length; numero++) {
@@ -294,6 +307,34 @@ function scelte_tutte_corrette() {
     return true;
 }
 
+function crea_rosa_scala(s) {
+    rosa_scala = PP.assets.sprite.add(s, spritesheet_rosa_scala,
+        X_ROSA, Y_TERRENO, 0.5, 1);
+    PP.assets.sprite.animation_add(rosa_scala,
+        NOME_ANIMAZIONE_SCALA, 0, 3, FPS_SCALA, -1);
+    rosa_scala.visibility.hidden = true;
+    animazione_scala_attiva = false;
+}
+
+function aggiorna_rosa_scala(s) {
+    rosa_scala.geometry.x = rosa.geometry.x;
+    rosa_scala.geometry.y = rosa.geometry.y + A_ROSA / 2;
+    rosa.visibility.hidden = in_scala;
+    rosa_scala.visibility.hidden = (in_scala == false);
+
+    let si_muove = in_scala
+        && (PP.interactive.kb.is_key_down(s, TASTO_SU)
+        || PP.interactive.kb.is_key_down(s, TASTO_GIU));
+
+    if (si_muove && animazione_scala_attiva == false) {
+        PP.assets.sprite.animation_play(rosa_scala, NOME_ANIMAZIONE_SCALA);
+        animazione_scala_attiva = true;
+    } else if (si_muove == false && animazione_scala_attiva) {
+        PP.assets.sprite.animation_stop(rosa_scala);
+        animazione_scala_attiva = false;
+    }
+}
+
 function fine_partita(s, a, b) {
     partita_vinta = false;
     PP.scenes.start("fine");
@@ -305,6 +346,7 @@ function update(s) {
     pattuglia_uomo();
     cammina(s);
     arrampica(s);
+    aggiorna_rosa_scala(s);
 }
 
 
