@@ -8,8 +8,6 @@ const GRIGIO = "0x808080";
 const A_TERRENO = 220;
 const Y_TERRENO = A_LIVELLO - A_TERRENO;
 const X_ROSA = 200;
-const L_ROSA = 81;
-const A_ROSA = 90;
 const L_UOMO = 81;
 const A_UOMO = 90;
 const X_CACAO = 1190;
@@ -23,11 +21,7 @@ const X_TRAGUARDO = 10200;
 const Y_TRAGUARDO = Y_TERRENO - A_TRAGUARDO / 2;
 const COLORE_TRAGUARDO = "0x00C853";
 const TRASPARENZA_TRAGUARDO = 0.4;
-const PERCORSO_ROSA_SCALA = "assets/images/rosa_scala.png";
-const L_FRAME_SCALA = 128;
-const A_FRAME_SCALA = 144;
-const FPS_SCALA = 8;
-const NOME_ANIMAZIONE_SCALA = "scala";
+
 
 const SCALE = [
     { x: 3295, y_alto: Y_TERRENO - 1119, l: 80, a: 1119 },
@@ -126,6 +120,13 @@ const VEL_CORSA = 400;
 const TASTO_SX = PP.key_codes.LEFT;
 const TASTO_DX = PP.key_codes.RIGHT;
 const ANTICIPO_CAMERA = 200;
+const PERCORSO_ROSA = "assets/images/rosa_spritesheet.png";
+const L_FRAME_ROSA = 128;
+const A_FRAME_ROSA = 144;
+const L_HITBOX_ROSA = 60;
+const A_HITBOX_ROSA = 100;
+const X_HITBOX_ROSA = (L_FRAME_ROSA - L_HITBOX_ROSA) / 2;
+const Y_HITBOX_ROSA = A_FRAME_ROSA - A_HITBOX_ROSA;
 
 let terreno;
 let rosa;
@@ -136,14 +137,14 @@ let in_scala = false;
 let scelta_corrente = 0;
 let scelte_fatte = [];
 let partita_vinta = false;
-let spritesheet_rosa_scala;
-let rosa_scala;
-let animazione_scala_attiva = false;
+let ss_rosa;
+let animazione;
+
 
 function preload(s) {
     immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
-    spritesheet_rosa_scala = PP.assets.sprite.load_spritesheet(s,
-        PERCORSO_ROSA_SCALA, L_FRAME_SCALA, A_FRAME_SCALA);
+        ss_rosa = PP.assets.sprite.load_spritesheet(s,
+        PERCORSO_ROSA, L_FRAME_ROSA, A_FRAME_ROSA);
     carica_oggetti(s);
 }
 
@@ -172,7 +173,6 @@ function create(s) {
     crea_scale(s);
     crea_oggetti(s);
     crea_traguardo(s);
-    crea_rosa_scala(s);
 }
 
 
@@ -236,12 +236,19 @@ function tocca_oggetto(s, a, b) {
 }
 
 function crea_rosa(s) {
-    rosa = PP.shapes.rectangle_add(s,
-        X_ROSA, Y_TERRENO - A_ROSA / 2,
-        L_ROSA, A_ROSA, VIOLA, 1);
+    rosa = PP.assets.sprite.add(s, ss_rosa,
+        X_ROSA, Y_TERRENO - A_FRAME_ROSA / 2, 0.5, 0.5);
     PP.physics.add(s, rosa, PP.physics.type.DYNAMIC);
     PP.physics.set_collide_world_bounds(rosa, true);
     PP.physics.add_collider(s, rosa, terreno);
+    PP.physics.set_collision_rectangle(rosa,
+        L_HITBOX_ROSA, A_HITBOX_ROSA, X_HITBOX_ROSA, Y_HITBOX_ROSA);
+    PP.assets.sprite.animation_add(rosa, "fermo", 0, 2, 4, -1);
+    PP.assets.sprite.animation_add(rosa, "cammina", 3, 6, 8, -1);
+    PP.assets.sprite.animation_add(rosa, "salto", 10, 12, 8, 0);
+    PP.assets.sprite.animation_add(rosa, "scala", 15, 18, 8, -1);
+    PP.assets.sprite.animation_add(rosa, "scala_ferma", 15, 15, 1, 0);
+    animazione = "";
 }
 
 function crea_uomo(s) {
@@ -346,7 +353,7 @@ function update(s) {
     pattuglia_uomo();
     cammina(s);
     arrampica(s);
-    aggiorna_rosa_scala(s);
+    anima_rosa(s);
 }
 
 
@@ -359,11 +366,34 @@ function salta(s) {
 
 function cammina(s) {
     if (PP.interactive.kb.is_key_down(s, TASTO_SX)) {
-        PP.physics.set_velocity_x(rosa, -VEL_CORSA);} 
-        else if (PP.interactive.kb.is_key_down(s, TASTO_DX)) 
-            {PP.physics.set_velocity_x(rosa, VEL_CORSA);} 
-        else {PP.physics.set_velocity_x(rosa, 0);
+        PP.physics.set_velocity_x(rosa, -VEL_CORSA);
+        rosa.geometry.flip_x = true;
+    } else if (PP.interactive.kb.is_key_down(s, TASTO_DX)) {
+        PP.physics.set_velocity_x(rosa, VEL_CORSA);
+        rosa.geometry.flip_x = false;
+    } else {
+        PP.physics.set_velocity_x(rosa, 0);
+    }
 }
+
+function anima_rosa(s) {
+    let nuova = "fermo";
+    if (in_scala) {
+        nuova = "scala_ferma";
+        if (PP.interactive.kb.is_key_down(s, TASTO_SU)
+            || PP.interactive.kb.is_key_down(s, TASTO_GIU)) {
+            nuova = "scala";
+        }
+    } else if (PP.physics.is_on_ground(rosa) == false) {
+        nuova = "salto";
+    } else if (PP.physics.get_velocity_x(rosa) != 0) {
+        nuova = "cammina";
+    }
+
+    if (nuova != animazione) {
+        animazione = nuova;
+        PP.assets.sprite.animation_play(rosa, animazione);
+    }
 }
 
 function pattuglia_uomo() {
