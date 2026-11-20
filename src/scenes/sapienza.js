@@ -114,6 +114,19 @@ const SCELTE = [
 const X_UOMO_MIN = 950;
 const X_UOMO_MAX = 1400;
 const VEL_UOMO = 400;
+const PROBABILITA_FERMATA = 0.003;
+const FERMATA_MIN = 1500;
+const FERMATA_MAX = 4000;
+const COLPI_MAX = 3;
+const INVULNERABILITA = 1500;
+const Y_UOMO = Y_TERRENO - A_UOMO / 2;
+
+const UOMINI = [
+    { x: 1200, y: Y_UOMO, raggio: 250 },
+    { x: 3100, y: Y_UOMO, raggio: 400 },
+    { x: 6000, y: Y_UOMO, raggio: 300 },
+];
+
 const VEL_SALTO = 1000;
 const TASTO_SALTO = PP.key_codes.SPACE;
 const VEL_CORSA = 400;
@@ -139,6 +152,9 @@ let scelte_fatte = [];
 let partita_vinta = false;
 let ss_rosa;
 let animazione;
+let uomini;
+let colpi_subiti;
+let invulnerabile_fino;
 
 
 function preload(s) {
@@ -163,11 +179,14 @@ function carica_oggetto(s, dati) {
 }
 
 function create(s) {
+    uomini = [];
+    colpi_subiti = 0;
+    invulnerabile_fino = 0;
     azzera_scelte();
     crea_sfondo(s);
     crea_terreno(s);
     crea_rosa(s);
-    crea_uomo(s);
+    crea_uomini(s);
     crea_camera(s);
     crea_piattaforme(s);
     crea_scale(s);
@@ -251,14 +270,81 @@ function crea_rosa(s) {
     animazione = "";
 }
 
-function crea_uomo(s) {
-    uomo = PP.shapes.rectangle_add(s,
-        X_UOMO_MIN, Y_TERRENO - A_UOMO / 2,
-        L_UOMO, A_UOMO, ROSSO, 1);
+function crea_uomini(s) {
+    for (const dati of UOMINI) {
+        crea_uomo(s, dati);
+    }
+}
+
+function crea_uomo(s, dati) {
+    let uomo = PP.shapes.rectangle_add(s,
+        dati.x, dati.y, L_UOMO, A_UOMO, ROSSO, 1);
+    uomo.x_min = dati.x - dati.raggio;
+    uomo.x_max = dati.x + dati.raggio;
+    uomo.direzione = 1;
+    uomo.fermo_fino = 0;
     PP.physics.add(s, uomo, PP.physics.type.DYNAMIC);
     PP.physics.set_allow_gravity(uomo, false);
     PP.physics.set_velocity_x(uomo, VEL_UOMO);
-    PP.physics.add_overlap_f(s, rosa, uomo, fine_partita);
+    PP.physics.add_overlap_f(s, rosa, uomo, colpita);
+    uomini.push(uomo);
+}
+
+function pattuglia_uomini(s) {
+    for (const uomo of uomini) {
+        pattuglia_uomo(s, uomo);
+    }
+}
+
+function pattuglia_uomo(s, uomo) {
+    let adesso = PP.timers.get_time(s);
+
+    if (uomo.fermo_fino > 0) {
+        if (adesso >= uomo.fermo_fino) {
+            uomo.fermo_fino = 0;
+            PP.physics.set_velocity_x(uomo, uomo.direzione * VEL_UOMO);
+        }
+        return;
+    }
+
+    if (uomo.geometry.x <= uomo.x_min) {
+        uomo.direzione = 1;
+    } else if (uomo.geometry.x >= uomo.x_max) {
+        uomo.direzione = -1;
+    }
+    PP.physics.set_velocity_x(uomo, uomo.direzione * VEL_UOMO);
+
+    if (Math.random() < PROBABILITA_FERMATA) {
+        ferma_uomo(uomo, adesso);
+    }
+}
+
+function ferma_uomo(uomo, adesso) {
+    let durata = FERMATA_MIN + Math.random() * (FERMATA_MAX - FERMATA_MIN);
+    uomo.fermo_fino = adesso + durata;
+    PP.physics.set_velocity_x(uomo, 0);
+}
+
+function colpita(s, a, b) {
+    let adesso = PP.timers.get_time(s);
+    if (adesso < invulnerabile_fino) {
+        return;
+    }
+    colpi_subiti = colpi_subiti + 1;
+    if (colpi_subiti >= COLPI_MAX) {
+        fine_partita(s, a, b);
+    } else {
+        invulnerabile_fino = adesso + INVULNERABILITA;
+    }
+}
+
+function aggiorna_invulnerabilita(s) {
+    let adesso = PP.timers.get_time(s);
+    if (adesso < invulnerabile_fino) {
+        rosa.visibility.hidden = (Math.floor(adesso / 100) % 2 == 0);
+    } else {
+        rosa.visibility.hidden = false;
+    }
 }
 
 function crea_piattaforme(s) {
@@ -350,10 +436,11 @@ function fine_partita(s, a, b) {
 
 function update(s) {
     salta(s);
-    pattuglia_uomo();
+    pattuglia_uomini(s);
     cammina(s);
     arrampica(s);
     anima_rosa(s);
+    aggiorna_invulnerabilita(s);
 }
 
 
@@ -396,13 +483,6 @@ function anima_rosa(s) {
     }
 }
 
-function pattuglia_uomo() {
-    if (uomo.geometry.x <= X_UOMO_MIN) {
-        PP.physics.set_velocity_x(uomo, VEL_UOMO);
-    } else if (uomo.geometry.x >= X_UOMO_MAX) {
-        PP.physics.set_velocity_x(uomo, -VEL_UOMO);
-    }
-}
 
 
 function arrampica(s) {
