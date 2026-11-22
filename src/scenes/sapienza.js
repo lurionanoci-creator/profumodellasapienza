@@ -111,7 +111,7 @@ const SCELTE = [
 
 const X_UOMO_MIN = 950;
 const X_UOMO_MAX = 1400;
-const VEL_UOMO = 400;
+const VEL_UOMO = 200;
 const PROBABILITA_FERMATA = 0.003;
 const FERMATA_MIN = 1500;
 const FERMATA_MAX = 4000;
@@ -138,7 +138,7 @@ const UOMINI = [
 
 const VEL_SALTO = 1000;
 const TASTO_SALTO = PP.key_codes.SPACE;
-const VEL_CORSA = 400;
+const VEL_CORSA = 300;
 const TASTO_SX = PP.key_codes.LEFT;
 const TASTO_DX = PP.key_codes.RIGHT;
 const ANTICIPO_CAMERA = 200;
