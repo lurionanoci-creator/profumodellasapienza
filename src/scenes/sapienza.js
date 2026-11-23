@@ -138,7 +138,7 @@ const UOMINI = [
 
 const VEL_SALTO = 1000;
 const TASTO_SALTO = PP.key_codes.SPACE;
-const VEL_CORSA = 300;
+const VEL_CORSA = 350;
 const TASTO_SX = PP.key_codes.LEFT;
 const TASTO_DX = PP.key_codes.RIGHT;
 const ANTICIPO_CAMERA = 200;
@@ -167,6 +167,7 @@ let invulnerabile_fino;
 let colpita_fino;
 let rosa_ko;
 let ss_uomini;
+let qualcosa_storto = false;
 
 function preload(s) {
     immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
@@ -470,7 +471,17 @@ function tocca_traguardo(s, a, b) {
         return;
     }
     partita_vinta = scelte_tutte_corrette();
+    qualcosa_storto = (partita_vinta == false) && tutte_le_scelte_fatte();
     PP.scenes.start("fine");
+}
+
+function tutte_le_scelte_fatte() {
+    for (let numero = 0; numero < SCELTE.length; numero++) {
+        if (scelte_fatte[numero] != "a" && scelte_fatte[numero] != "b") {
+            return false;
+        }
+    }
+    return true;
 }
 
 function scelte_tutte_corrette() {
@@ -512,6 +523,7 @@ function aggiorna_rosa_scala(s) {
 
 function fine_partita(s, a, b) {
     partita_vinta = false;
+    qualcosa_storto = false;
     PP.scenes.start("fine");
 }
 
