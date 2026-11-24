@@ -5,11 +5,9 @@ const VIOLA = "0x800080";
 const ROSSO = "0xE44A4A";
 const MARRONE = "0x8B5A2B";
 const GRIGIO = "0x808080";
-const A_TERRENO = 220;
+const A_TERRENO = 161;
 const Y_TERRENO = A_LIVELLO - A_TERRENO;
 const X_ROSA = 200;
-const X_CACAO = 1190;
-const Y_CACAO = Y_TERRENO - 200;
 const L_OGGETTO = 80;
 const A_OGGETTO = 80;
 const COLORE_OGGETTO = "0x4A90E2";
@@ -19,6 +17,7 @@ const X_TRAGUARDO = 10200;
 const Y_TRAGUARDO = Y_TERRENO - A_TRAGUARDO / 2;
 const COLORE_TRAGUARDO = "0x00C853";
 const TRASPARENZA_TRAGUARDO = 0.4;
+const TRASPARENZA_TERRENO = 0; 
 
 
 const SCALE = [
@@ -31,19 +30,19 @@ const TRASPARENZA_SCALA = 0.4;
 const VEL_SCALA = 300;
 const TASTO_SU = PP.key_codes.UP;
 const TASTO_GIU = PP.key_codes.DOWN;
-const PERCORSO_SFONDO = "assets/images/Bozza-mappa.png";
+const PERCORSO_SFONDO = "assets/images/Mappa_LCG.png";
 const PERCORSO_CACAO = "assets/images/cacao.png";
 
 const PIATTAFORME = [
     // piattaforme lunghe
-    { x: 1190, y: Y_TERRENO - 150, l: 290, a: 21, colore: MARRONE },
+    { x: 1147, y: Y_TERRENO - 150, l: 290, a: 21, colore: MARRONE },
     { x: 1960, y: Y_TERRENO - 150, l: 290, a: 21, colore: MARRONE },
     { x: 2415, y: Y_TERRENO - 150, l: 270, a: 21, colore: MARRONE },
     { x: 3580, y: Y_TERRENO - 210, l: 280, a: 21, colore: MARRONE },
     { x: 4460, y: Y_TERRENO - 290, l: 230, a: 21, colore: GRIGIO },
     { x: 6240, y: Y_TERRENO - 445, l: 355, a: 21, colore: MARRONE },
     // piattaforme corte
-    { x: 1745, y: Y_TERRENO - 295, l: 170, a: 21, colore: MARRONE },
+    { x: 1445, y: Y_TERRENO - 295, l: 170, a: 21, colore: MARRONE },
     { x: 2800, y: Y_TERRENO - 295, l: 170, a: 21, colore: MARRONE },
     { x: 4135, y: Y_TERRENO - 140, l: 150, a: 21, colore: GRIGIO },
     { x: 4790, y: Y_TERRENO - 425, l: 155, a: 21, colore: GRIGIO },
@@ -59,13 +58,13 @@ const PIATTAFORME = [
     { x: 9560, y: Y_TERRENO - 150, l: 175, a: 21, colore: MARRONE },
     { x: 10125, y: Y_TERRENO - 295, l: 150, a: 21, colore: MARRONE },
     // pavimenti
-    { x: 1190, y: Y_TERRENO - 429, l: 860, a: 18, colore: TERRA },
-    { x: 2340, y: Y_TERRENO - 429, l: 780, a: 18, colore: TERRA },
-    { x: 3045, y: Y_TERRENO - 429, l: 360, a: 18, colore: TERRA },
-    { x: 3045, y: Y_TERRENO - 840, l: 360, a: 18, colore: TERRA },
-    { x: 2285, y: Y_TERRENO - 840, l: 900, a: 18, colore: TERRA },
-    { x: 1460, y: Y_TERRENO - 840, l: 300, a: 18, colore: TERRA },
-    { x: 1050, y: Y_TERRENO - 840, l: 280, a: 18, colore: TERRA },
+    { x: 980, y: Y_TERRENO - 385, l: 940, a: 18, colore: TERRA },
+    { x: 2090, y: Y_TERRENO - 385, l: 710, a: 18, colore: TERRA },
+    { x: 2743, y: Y_TERRENO - 385, l: 320, a: 18, colore: TERRA },
+    { x: 3045, y: Y_TERRENO - 776, l: 360, a: 18, colore: TERRA },
+    { x: 2285, y: Y_TERRENO - 776, l: 900, a: 18, colore: TERRA },
+    { x: 1460, y: Y_TERRENO - 776, l: 300, a: 18, colore: TERRA },
+    { x: 1050, y: Y_TERRENO - 776, l: 280, a: 18, colore: TERRA },
     { x: 2760, y: Y_TERRENO - 1420, l: 430, a: 18, colore: TERRA },
     // piattaforme corte 2
     { x: 1820, y: Y_TERRENO - 565, l: 130, a: 21, colore: MARRONE },
@@ -83,35 +82,35 @@ const PIATTAFORME = [
 ];
 
 const SCELTE = [
-    { testo: "Testo segnaposto della domanda 1.",
+    { testo: "E pensare che molte persone lo consumano, rovinandosi i polmoni!",
         corretta: "a",
-      a: { nome: "Cacao", x: X_CACAO, y: Y_CACAO, percorso: PERCORSO_CACAO },
-      b: { nome: "Oggetto B", x: X_CACAO + 100, y: Y_CACAO, percorso: "" } },
-    { testo: "Testo segnaposto della domanda 2.",
+      a: { nome: "Tabacco", x: 850, y: Y_TERRENO - 820, percorso: PERCORSO_CACAO },
+      b: { nome: "Incenso", x: 950, y: Y_TERRENO - 820, percorso: "" } },
+    { testo: "E’ un ingrediente che amo aggiungere nei dolci. ",
         corretta: "b",
-        a: { nome: "Opzione 1", x: 2000, y: Y_TERRENO - 40, percorso: "" },
-        b: { nome: "Opzione 2", x: 2100, y: Y_TERRENO - 40, percorso: "" } },
-    { testo: "Testo segnaposto della domanda 3.",
+        a: { nome: "Curcuma", x: 2000, y: Y_TERRENO - 40, percorso: "" },
+        b: { nome: "Cannella", x: 2100, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Il laboratorio dovrà aver pagato tanto per avere scorte di questa...",
         corretta: "a",
-      a: { nome: "Opzione 1", x: 4000, y: Y_TERRENO - 40, percorso: "" },
-      b: { nome: "Opzione 2", x: 4100, y: Y_TERRENO - 40, percorso: "" } },
-    { testo: "Testo segnaposto della domanda 4.",
+      a: { nome: "Vaniglia", x: 4000, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Mandorla", x: 4100, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Una volta raffinato diventa proprio dolce!",
         corretta: "b",
-      a: { nome: "Opzione 1", x: 5000, y: Y_TERRENO - 40, percorso: "" },
-      b: { nome: "Opzione 2", x: 5100, y: Y_TERRENO - 40, percorso: "" } },
-    { testo: "Testo segnaposto della domanda 5.",
+      a: { nome: "Caffè", x: 5000, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Cacao", x: 5100, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Che sapore esotico!",
         corretta: "a",
-      a: { nome: "Opzione 1", x: 7500, y: Y_TERRENO - 40, percorso: "" },
-      b: { nome: "Opzione 2", x: 7600, y: Y_TERRENO - 40, percorso: "" } },
-    { testo: "Testo segnaposto della domanda 6.",
+      a: { nome: "Datteri", x: 7500, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Miele", x: 7600, y: Y_TERRENO - 40, percorso: "" } },
+    { testo: "Il calore di questo aroma è indescrivibile.",
         corretta: "b",
-      a: { nome: "Opzione 1", x: 9000, y: Y_TERRENO - 40, percorso: "" },
-      b: { nome: "Opzione 2", x: 9100, y: Y_TERRENO - 40, percorso: "" } },
+      a: { nome: "Patchouli", x: 9000, y: Y_TERRENO - 40, percorso: "" },
+      b: { nome: "Fava tonka", x: 9100, y: Y_TERRENO - 40, percorso: "" } },
 ];
 
 const X_UOMO_MIN = 950;
 const X_UOMO_MAX = 1400;
-const VEL_UOMO = 200;
+const VEL_UOMO = 150;
 const PROBABILITA_FERMATA = 0.003;
 const FERMATA_MIN = 1500;
 const FERMATA_MAX = 4000;
@@ -131,8 +130,8 @@ const DURATA_COLPITA = 500;
 const DURATA_KO = 1500;
 
 const UOMINI = [
-    { x: 1200, y: Y_UOMO, raggio: 250, tipo: 0 },
-    { x: 3100, y: Y_UOMO, raggio: 400, tipo: 1 },
+    { x: 1145, y: Y_UOMO, raggio: 200, tipo: 0 },
+    { x: 2500, y: Y_UOMO, raggio: 200, tipo: 1 },
     { x: 6000, y: Y_UOMO, raggio: 300, tipo: 2 },
 ];
 
@@ -253,7 +252,7 @@ function crea_camera(s) {
 function crea_terreno(s) {
     terreno = PP.shapes.rectangle_add(s,
        L_LIVELLO / 2, Y_TERRENO + A_TERRENO / 2,
-    L_LIVELLO, A_TERRENO, TERRA, 1);
+    L_LIVELLO, A_TERRENO, TERRA, TRASPARENZA_TERRENO);
     PP.physics.add(s, terreno, PP.physics.type.STATIC);
 }
 
@@ -283,7 +282,7 @@ function crea_rosa(s) {
         L_HITBOX_ROSA, A_HITBOX_ROSA, X_HITBOX_ROSA, Y_HITBOX_ROSA);
     PP.assets.sprite.animation_add(rosa, "fermo", 0, 2, 4, -1);
     PP.assets.sprite.animation_add(rosa, "cammina", 3, 6, 8, -1);
-    PP.assets.sprite.animation_add(rosa, "salto", 10, 12, 8, 0);
+    PP.assets.sprite.animation_add(rosa, "salto", 10, 10, 8, 0);
     PP.assets.sprite.animation_add(rosa, "scala", 15, 18, 8, -1);
     PP.assets.sprite.animation_add(rosa, "scala_ferma", 15, 15, 1, 0);
     PP.assets.sprite.animation_add(rosa, "ko", 19, 19, 1, 0);
