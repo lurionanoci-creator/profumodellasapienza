@@ -1,3 +1,5 @@
+import { LARGHEZZA, ALTEZZA } from "../costanti.js";
+import { partita_vinta, qualcosa_storto } from "./sapienza.js";
 const NERO = "0x000000";
 const TASTO_RIGIOCA = PP.key_codes.SPACE;
 const TESTO_VITTORIA = "HAI VINTO!";

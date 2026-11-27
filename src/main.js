@@ -1,5 +1,4 @@
-const LARGHEZZA = 1280;
-const ALTEZZA = 720;
+import { LARGHEZZA, ALTEZZA } from "./costanti.js";
 
 const config = {
 canvas_width: LARGHEZZA,

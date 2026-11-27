@@ -19,7 +19,6 @@ const COLORE_TRAGUARDO = "0x00C853";
 const TRASPARENZA_TRAGUARDO = 0.4;
 const TRASPARENZA_TERRENO = 0; 
 
-
 const SCALE = [
     { x: 3295, y_alto: Y_TERRENO - 1119, l: 80, a: 1119 },
     { x: 3020, y_alto: Y_TERRENO - 1430,  l: 100, a: 280 },
@@ -81,7 +80,7 @@ const PIATTAFORME = [
     { x: 1180, y: Y_TERRENO - 995, l: 275, a: 18, colore: MARRONE },
 ];
 
-const SCELTE = [
+export const SCELTE = [
     { testo: "E pensare che molte persone lo consumano, rovinandosi i polmoni!",
         corretta: "a",
       a: { nome: "Tabacco", x: 850, y: Y_TERRENO - 820, percorso: PERCORSO_CACAO },
@@ -121,8 +120,8 @@ const L_FRAME_UOMO = 128;
 const A_FRAME_UOMO = 144;
 const COLONNE_UOMINI = 8;
 const FRAME_PER_TIPO = COLONNE_UOMINI * 3;
-const L_HITBOX_UOMO = 60;
-const A_HITBOX_UOMO = 100;
+const L_HITBOX_UOMO = 90;
+const A_HITBOX_UOMO = 120;
 const X_HITBOX_UOMO = (L_FRAME_UOMO - L_HITBOX_UOMO) / 2;
 const Y_HITBOX_UOMO = A_FRAME_UOMO - A_HITBOX_UOMO;
 const Y_UOMO = Y_TERRENO - A_FRAME_UOMO / 2;
@@ -144,8 +143,8 @@ const ANTICIPO_CAMERA = 200;
 const PERCORSO_ROSA = "assets/images/rosa_spritesheet.png";
 const L_FRAME_ROSA = 128;
 const A_FRAME_ROSA = 144;
-const L_HITBOX_ROSA = 60;
-const A_HITBOX_ROSA = 100;
+const L_HITBOX_ROSA = 90;
+const A_HITBOX_ROSA = 120;
 const X_HITBOX_ROSA = (L_FRAME_ROSA - L_HITBOX_ROSA) / 2;
 const Y_HITBOX_ROSA = A_FRAME_ROSA - A_HITBOX_ROSA;
 
@@ -155,9 +154,9 @@ let uomo;
 let immagine_sfondo;
 let sulla_scala = false;
 let in_scala = false;
-let scelta_corrente = 0;
-let scelte_fatte = [];
-let partita_vinta = false;
+export let scelta_corrente = 0;
+export let scelte_fatte = [];
+export let partita_vinta = false;
 let ss_rosa;
 let animazione;
 let uomini;
@@ -166,7 +165,9 @@ let invulnerabile_fino;
 let colpita_fino;
 let rosa_ko;
 let ss_uomini;
-let qualcosa_storto = false;
+export let qualcosa_storto = false;
+
+//preload livello
 
 function preload(s) {
     immagine_sfondo = PP.assets.image.load(s, PERCORSO_SFONDO);
@@ -191,6 +192,8 @@ function carica_oggetto(s, dati) {
     }
 }
 
+//creazione livello
+
 function create(s) {
     uomini = [];
     colpi_subiti = 0;
@@ -209,28 +212,7 @@ function create(s) {
     crea_traguardo(s);
 }
 
-
-function crea_oggetti(s) {
-    for (let numero = 0; numero < SCELTE.length; numero++) {
-        crea_oggetto(s, SCELTE[numero].a, numero);
-        crea_oggetto(s, SCELTE[numero].b, numero);
-    }
-}
-
-function crea_oggetto(s, dati, numero) {
-    let oggetto;
-    if (dati.percorso == "") {
-        oggetto = PP.shapes.rectangle_add(s,
-            dati.x, dati.y,
-            L_OGGETTO, A_OGGETTO, COLORE_OGGETTO, 1);
-    } else {
-        oggetto = PP.assets.image.add(s, dati.immagine,
-            dati.x, dati.y, 0.5, 0.5);
-    }
-    oggetto.numero_scelta = numero;
-    PP.physics.add(s, oggetto, PP.physics.type.STATIC);
-    PP.physics.add_collider_f(s, rosa, oggetto, tocca_oggetto);
-}
+//miscellanea1
 
 function azzera_scelte() {
     scelte_fatte = [];
@@ -243,12 +225,6 @@ function crea_sfondo(s) {
     PP.assets.image.add(s, immagine_sfondo, 0, A_LIVELLO, 0, 1);
 }
 
-function crea_camera(s) {
-    PP.physics.set_world_bounds(s, 0, 0, L_LIVELLO, A_LIVELLO);
-    PP.camera.set_bounds(s, 0, 0, L_LIVELLO, A_LIVELLO);
-    PP.camera.start_follow(s, rosa, -ANTICIPO_CAMERA, 0);
-}
-
 function crea_terreno(s) {
     terreno = PP.shapes.rectangle_add(s,
        L_LIVELLO / 2, Y_TERRENO + A_TERRENO / 2,
@@ -256,21 +232,7 @@ function crea_terreno(s) {
     PP.physics.add(s, terreno, PP.physics.type.STATIC);
 }
 
-
-function tocca_oggetto(s, a, b) {
-    if (rosa_ko) {
-        return;
-    }
-    let numero = b.numero_scelta;
-    if (numero == undefined) {
-        numero = a.numero_scelta;
-    }
-    if (scelte_fatte[numero] == "") {
-        scelte_fatte[numero] = "in_corso";
-        scelta_corrente = numero;
-        PP.scenes.start_overlay("scelta");
-    }
-}
+//rosa
 
 function crea_rosa(s) {
     rosa = PP.assets.sprite.add(s, ss_rosa,
@@ -289,6 +251,39 @@ function crea_rosa(s) {
     PP.assets.sprite.animation_add(rosa, "colpita", 20, 22, 6, 0);
     animazione = "";
 }
+
+function colpita(s, a, b) {
+    let adesso = PP.timers.get_time(s);
+    if (rosa_ko || adesso < invulnerabile_fino) {
+        return;
+    }
+
+    let uomo = b;
+    if (uomo.x_min == undefined) {
+        uomo = a;
+    }
+
+    colpi_subiti = colpi_subiti + 1;
+    ferma_rosa();
+    PP.physics.set_velocity_x(uomo, 0);
+
+    if (colpi_subiti >= COLPI_MAX) {
+        inizia_ko(s, uomo, adesso);
+    } else {
+        invulnerabile_fino = adesso + INVULNERABILITA;
+        colpita_fino = adesso + DURATA_COLPITA;
+        uomo.colpisce_fino = adesso + DURATA_COLPITA;
+    }
+}
+
+function ferma_rosa() {
+    PP.physics.set_velocity_x(rosa, 0);
+    if (in_scala) {
+        PP.physics.set_velocity_y(rosa, 0);
+    }
+}
+
+//uomini
 
 function crea_uomini(s) {
     for (const dati of UOMINI) {
@@ -319,6 +314,171 @@ function crea_uomo(s, dati) {
     PP.physics.set_velocity_x(uomo, VEL_UOMO);
     PP.physics.add_overlap_f(s, rosa, uomo, colpita);
     uomini.push(uomo);
+}
+
+function anima_uomo(uomo, adesso) {
+    let nuova = "cammina";
+    if (adesso < uomo.colpisce_fino) {
+        nuova = "colpisce";
+    } else if (uomo.fermo_fino > 0) {
+        nuova = "fermo";
+    }
+
+    if (nuova != uomo.animazione) {
+        uomo.animazione = nuova;
+        PP.assets.sprite.animation_play(uomo, nuova);
+    }
+}
+
+function ferma_uomo(uomo, adesso) {
+    let durata = FERMATA_MIN + Math.random() * (FERMATA_MAX - FERMATA_MIN);
+    uomo.fermo_fino = adesso + durata;
+    PP.physics.set_velocity_x(uomo, 0);
+}
+
+//camera, piattaforme, scale, oggetti, traguardo
+
+function crea_camera(s) {
+    PP.physics.set_world_bounds(s, 0, 0, L_LIVELLO, A_LIVELLO);
+    PP.camera.set_bounds(s, 0, 0, L_LIVELLO, A_LIVELLO);
+    PP.camera.start_follow(s, rosa, -ANTICIPO_CAMERA, 0);
+}
+
+function crea_piattaforme(s) {
+    for (const p of PIATTAFORME) {
+        crea_piattaforma(s, p);
+    }
+}
+
+function crea_piattaforma(s, p) {
+    let piattaforma = PP.shapes.rectangle_add(s,
+        p.x, p.y, p.l, p.a, p.colore, 1);
+    PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
+    PP.physics.add_collider(s, rosa, piattaforma);
+}
+
+function crea_scale(s) {
+    for (const dati of SCALE) {
+        crea_scala(s, dati);
+    }
+}
+
+function crea_scala(s, dati) {
+    let scala = PP.shapes.rectangle_add(s,
+        dati.x, dati.y_alto + dati.a / 2,
+        dati.l, dati.a, COLORE_SCALA, TRASPARENZA_SCALA);
+    PP.physics.add(s, scala, PP.physics.type.STATIC);
+    PP.physics.add_overlap_f(s, rosa, scala, tocca_scala);
+}
+
+function tocca_scala(s, a, b) {
+    sulla_scala = true;
+}
+
+function crea_oggetti(s) {
+    for (let numero = 0; numero < SCELTE.length; numero++) {
+        crea_oggetto(s, SCELTE[numero].a, numero);
+        crea_oggetto(s, SCELTE[numero].b, numero);
+    }
+}
+
+function crea_oggetto(s, dati, numero) {
+    let oggetto;
+    if (dati.percorso == "") {
+        oggetto = PP.shapes.rectangle_add(s,
+            dati.x, dati.y,
+            L_OGGETTO, A_OGGETTO, COLORE_OGGETTO, 1);
+    } else {
+        oggetto = PP.assets.image.add(s, dati.immagine,
+            dati.x, dati.y, 0.5, 0.5);
+    }
+    oggetto.numero_scelta = numero;
+    PP.physics.add(s, oggetto, PP.physics.type.STATIC);
+    PP.physics.add_collider_f(s, rosa, oggetto, tocca_oggetto);
+}
+
+function tocca_oggetto(s, a, b) {
+    if (rosa_ko) {
+        return;
+    }
+    let numero = b.numero_scelta;
+    if (numero == undefined) {
+        numero = a.numero_scelta;
+    }
+    if (scelte_fatte[numero] == "") {
+        scelte_fatte[numero] = "in_corso";
+        scelta_corrente = numero;
+        PP.scenes.start_overlay("scelta");
+    }
+}
+
+function crea_traguardo(s) {
+    let traguardo = PP.shapes.rectangle_add(s,
+        X_TRAGUARDO, Y_TRAGUARDO,
+        L_TRAGUARDO, A_TRAGUARDO, COLORE_TRAGUARDO, TRASPARENZA_TRAGUARDO);
+    PP.physics.add(s, traguardo, PP.physics.type.STATIC);
+    PP.physics.add_overlap_f(s, rosa, traguardo, tocca_traguardo);
+}
+
+function tocca_traguardo(s, a, b) {
+    if (rosa_ko) {
+        return;
+    }
+    partita_vinta = scelte_tutte_corrette();
+    qualcosa_storto = (partita_vinta == false) && tutte_le_scelte_fatte();
+    PP.scenes.start("fine");
+}
+
+//miscellanea2
+
+function inizia_ko(s, uomo, adesso) {
+    rosa_ko = true;
+    rosa.visibility.hidden = false;
+    PP.physics.set_allow_gravity(rosa, true);
+    animazione = "ko";
+    PP.assets.sprite.animation_play(rosa, animazione);
+    uomo.colpisce_fino = adesso + DURATA_KO * 2;
+    PP.timers.add_timer(s, DURATA_KO, fine_partita, false);
+}
+
+function tutte_le_scelte_fatte() {
+    for (let numero = 0; numero < SCELTE.length; numero++) {
+        if (scelte_fatte[numero] != "a" && scelte_fatte[numero] != "b") {
+            return false;
+        }
+    }
+    return true;
+}
+
+function scelte_tutte_corrette() {
+    for (let numero = 0; numero < SCELTE.length; numero++) {
+        if (scelte_fatte[numero] != SCELTE[numero].corretta) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function fine_partita(s, a, b) {
+    partita_vinta = false;
+    qualcosa_storto = false;
+    PP.scenes.start("fine");
+}
+
+//update livello
+
+function update(s) {
+    pattuglia_uomini(s);
+    if (rosa_ko) {
+        return;
+    }
+    if (PP.timers.get_time(s) >= colpita_fino) {
+        salta(s);
+        cammina(s);
+        arrampica(s);
+    }
+    anima_rosa(s);
+    aggiorna_invulnerabilita(s);
 }
 
 function pattuglia_uomini(s) {
@@ -356,192 +516,6 @@ function pattuglia_uomo(s, uomo) {
     }
 }
 
-function anima_uomo(uomo, adesso) {
-    let nuova = "cammina";
-    if (adesso < uomo.colpisce_fino) {
-        nuova = "colpisce";
-    } else if (uomo.fermo_fino > 0) {
-        nuova = "fermo";
-    }
-
-    if (nuova != uomo.animazione) {
-        uomo.animazione = nuova;
-        PP.assets.sprite.animation_play(uomo, nuova);
-    }
-}
-
-function ferma_uomo(uomo, adesso) {
-    let durata = FERMATA_MIN + Math.random() * (FERMATA_MAX - FERMATA_MIN);
-    uomo.fermo_fino = adesso + durata;
-    PP.physics.set_velocity_x(uomo, 0);
-}
-
-function colpita(s, a, b) {
-    let adesso = PP.timers.get_time(s);
-    if (rosa_ko || adesso < invulnerabile_fino) {
-        return;
-    }
-
-    let uomo = b;
-    if (uomo.x_min == undefined) {
-        uomo = a;
-    }
-
-    colpi_subiti = colpi_subiti + 1;
-    ferma_rosa();
-    PP.physics.set_velocity_x(uomo, 0);
-
-    if (colpi_subiti >= COLPI_MAX) {
-        inizia_ko(s, uomo, adesso);
-    } else {
-        invulnerabile_fino = adesso + INVULNERABILITA;
-        colpita_fino = adesso + DURATA_COLPITA;
-        uomo.colpisce_fino = adesso + DURATA_COLPITA;
-    }
-}
-
-function ferma_rosa() {
-    PP.physics.set_velocity_x(rosa, 0);
-    if (in_scala) {
-        PP.physics.set_velocity_y(rosa, 0);
-    }
-}
-
-function inizia_ko(s, uomo, adesso) {
-    rosa_ko = true;
-    rosa.visibility.hidden = false;
-    PP.physics.set_allow_gravity(rosa, true);
-    animazione = "ko";
-    PP.assets.sprite.animation_play(rosa, animazione);
-    uomo.colpisce_fino = adesso + DURATA_KO * 2;
-    PP.timers.add_timer(s, DURATA_KO, fine_partita, false);
-}
-
-function aggiorna_invulnerabilita(s) {
-    let adesso = PP.timers.get_time(s);
-    if (adesso < invulnerabile_fino) {
-        rosa.visibility.hidden = (Math.floor(adesso / 100) % 2 == 0);
-    } else {
-        rosa.visibility.hidden = false;
-    }
-}
-
-function crea_piattaforme(s) {
-    for (const p of PIATTAFORME) {
-        crea_piattaforma(s, p);
-    }
-}
-
-function crea_piattaforma(s, p) {
-    let piattaforma = PP.shapes.rectangle_add(s,
-        p.x, p.y, p.l, p.a, p.colore, 1);
-    PP.physics.add(s, piattaforma, PP.physics.type.STATIC);
-    PP.physics.add_collider(s, rosa, piattaforma);
-}
-
-function crea_scale(s) {
-    for (const dati of SCALE) {
-        crea_scala(s, dati);
-    }
-}
-
-function crea_scala(s, dati) {
-    let scala = PP.shapes.rectangle_add(s,
-        dati.x, dati.y_alto + dati.a / 2,
-        dati.l, dati.a, COLORE_SCALA, TRASPARENZA_SCALA);
-    PP.physics.add(s, scala, PP.physics.type.STATIC);
-    PP.physics.add_overlap_f(s, rosa, scala, tocca_scala);
-}
-
-function tocca_scala(s, a, b) {
-    sulla_scala = true;
-}
-
-function crea_traguardo(s) {
-    let traguardo = PP.shapes.rectangle_add(s,
-        X_TRAGUARDO, Y_TRAGUARDO,
-        L_TRAGUARDO, A_TRAGUARDO, COLORE_TRAGUARDO, TRASPARENZA_TRAGUARDO);
-    PP.physics.add(s, traguardo, PP.physics.type.STATIC);
-    PP.physics.add_overlap_f(s, rosa, traguardo, tocca_traguardo);
-}
-
-function tocca_traguardo(s, a, b) {
-    if (rosa_ko) {
-        return;
-    }
-    partita_vinta = scelte_tutte_corrette();
-    qualcosa_storto = (partita_vinta == false) && tutte_le_scelte_fatte();
-    PP.scenes.start("fine");
-}
-
-function tutte_le_scelte_fatte() {
-    for (let numero = 0; numero < SCELTE.length; numero++) {
-        if (scelte_fatte[numero] != "a" && scelte_fatte[numero] != "b") {
-            return false;
-        }
-    }
-    return true;
-}
-
-function scelte_tutte_corrette() {
-    for (let numero = 0; numero < SCELTE.length; numero++) {
-        if (scelte_fatte[numero] != SCELTE[numero].corretta) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function crea_rosa_scala(s) {
-    rosa_scala = PP.assets.sprite.add(s, spritesheet_rosa_scala,
-        X_ROSA, Y_TERRENO, 0.5, 1);
-    PP.assets.sprite.animation_add(rosa_scala,
-        NOME_ANIMAZIONE_SCALA, 0, 3, FPS_SCALA, -1);
-    rosa_scala.visibility.hidden = true;
-    animazione_scala_attiva = false;
-}
-
-function aggiorna_rosa_scala(s) {
-    rosa_scala.geometry.x = rosa.geometry.x;
-    rosa_scala.geometry.y = rosa.geometry.y + A_ROSA / 2;
-    rosa.visibility.hidden = in_scala;
-    rosa_scala.visibility.hidden = (in_scala == false);
-
-    let si_muove = in_scala
-        && (PP.interactive.kb.is_key_down(s, TASTO_SU)
-        || PP.interactive.kb.is_key_down(s, TASTO_GIU));
-
-    if (si_muove && animazione_scala_attiva == false) {
-        PP.assets.sprite.animation_play(rosa_scala, NOME_ANIMAZIONE_SCALA);
-        animazione_scala_attiva = true;
-    } else if (si_muove == false && animazione_scala_attiva) {
-        PP.assets.sprite.animation_stop(rosa_scala);
-        animazione_scala_attiva = false;
-    }
-}
-
-function fine_partita(s, a, b) {
-    partita_vinta = false;
-    qualcosa_storto = false;
-    PP.scenes.start("fine");
-}
-
-
-function update(s) {
-    pattuglia_uomini(s);
-    if (rosa_ko) {
-        return;
-    }
-    if (PP.timers.get_time(s) >= colpita_fino) {
-        salta(s);
-        cammina(s);
-        arrampica(s);
-    }
-    anima_rosa(s);
-    aggiorna_invulnerabilita(s);
-}
-
-
 function salta(s) {
     if (PP.interactive.kb.is_key_just_down(s, TASTO_SALTO)
         && PP.physics.is_on_ground(rosa)) {
@@ -560,31 +534,6 @@ function cammina(s) {
         PP.physics.set_velocity_x(rosa, 0);
     }
 }
-
-function anima_rosa(s) {
-    let adesso = PP.timers.get_time(s);
-    let nuova = "fermo";
-    if (adesso < colpita_fino) {
-        nuova = "colpita";
-    } else if (in_scala) {
-        nuova = "scala_ferma";
-        if (PP.interactive.kb.is_key_down(s, TASTO_SU)
-            || PP.interactive.kb.is_key_down(s, TASTO_GIU)) {
-            nuova = "scala";
-        }
-    } else if (PP.physics.is_on_ground(rosa) == false) {
-        nuova = "salto";
-    } else if (PP.physics.get_velocity_x(rosa) != 0) {
-        nuova = "cammina";
-    }
-
-    if (nuova != animazione) {
-        animazione = nuova;
-        PP.assets.sprite.animation_play(rosa, animazione);
-    }
-}
-
-
 
 function arrampica(s) {
     if (sulla_scala == false) {
@@ -614,6 +563,39 @@ function muovi_su_scala(s) {
     }
 }
 
+function anima_rosa(s) {
+    let adesso = PP.timers.get_time(s);
+    let nuova = "fermo";
+    if (adesso < colpita_fino) {
+        nuova = "colpita";
+    } else if (in_scala) {
+        nuova = "scala_ferma";
+        if (PP.interactive.kb.is_key_down(s, TASTO_SU)
+            || PP.interactive.kb.is_key_down(s, TASTO_GIU)) {
+            nuova = "scala";
+        }
+    } else if (PP.physics.is_on_ground(rosa) == false) {
+        nuova = "salto";
+    } else if (PP.physics.get_velocity_x(rosa) != 0) {
+        nuova = "cammina";
+    }
+
+    if (nuova != animazione) {
+        animazione = nuova;
+        PP.assets.sprite.animation_play(rosa, animazione);
+    }
+}
+
+function aggiorna_invulnerabilita(s) {
+    let adesso = PP.timers.get_time(s);
+    if (adesso < invulnerabile_fino) {
+        rosa.visibility.hidden = (Math.floor(adesso / 100) % 2 == 0);
+    } else {
+        rosa.visibility.hidden = false;
+    }
+}
+
+//destroy livello
 
 function destroy(s) {}
 

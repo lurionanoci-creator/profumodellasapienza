@@ -1,4 +1,6 @@
-const COLORE_BOX = "0x000000";
+
+import { LARGHEZZA, ALTEZZA } from "../costanti.js";
+import { SCELTE, scelta_corrente, scelte_fatte } from "./sapienza.js";const COLORE_BOX = "0x000000";
 const TRASPARENZA_BOX = 0.85;
 const COLORE_TESTO = "0xFFFFFF";
 const COLORE_ICONA = "0x800080";
