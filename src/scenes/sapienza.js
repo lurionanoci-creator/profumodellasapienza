@@ -140,7 +140,7 @@ const VEL_CORSA = 350;
 const TASTO_SX = PP.key_codes.LEFT;
 const TASTO_DX = PP.key_codes.RIGHT;
 const ANTICIPO_CAMERA = 200;
-const PERCORSO_ROSA = "assets/images/rosa_spritesheet.png";
+const PERCORSO_ROSA = "assets/images/rosa_spritesheet1.png";
 const L_FRAME_ROSA = 128;
 const A_FRAME_ROSA = 144;
 const L_HITBOX_ROSA = 90;
@@ -244,11 +244,11 @@ function crea_rosa(s) {
         L_HITBOX_ROSA, A_HITBOX_ROSA, X_HITBOX_ROSA, Y_HITBOX_ROSA);
     PP.assets.sprite.animation_add(rosa, "fermo", 0, 2, 4, -1);
     PP.assets.sprite.animation_add(rosa, "cammina", 3, 6, 8, -1);
-    PP.assets.sprite.animation_add(rosa, "salto", 10, 10, 8, 0);
-    PP.assets.sprite.animation_add(rosa, "scala", 15, 18, 8, -1);
-    PP.assets.sprite.animation_add(rosa, "scala_ferma", 15, 15, 1, 0);
-    PP.assets.sprite.animation_add(rosa, "ko", 19, 19, 1, 0);
-    PP.assets.sprite.animation_add(rosa, "colpita", 20, 22, 6, 0);
+    PP.assets.sprite.animation_add(rosa, "salto", 7, 8, 4, -1);
+    PP.assets.sprite.animation_add(rosa, "scala", 10, 13, 8, -1);
+    PP.assets.sprite.animation_add(rosa, "scala_ferma", 12, 12, 1, 0);
+    PP.assets.sprite.animation_add(rosa, "ko", 15, 17, 1, 0);
+    PP.assets.sprite.animation_add(rosa, "colpita", 15, 17, 6, 0);
     animazione = "";
 }
 
